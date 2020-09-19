@@ -66,6 +66,11 @@ namespace ByteBank.View
             thread_1.Start();
             thread_2.Start();
 
+            while (thread_1.IsAlive || thread_2.IsAlive)
+            {
+                Thread.Sleep(100);
+            }
+
             var fim = DateTime.Now;
 
             AtualizarView(resultado, fim - inicio);
