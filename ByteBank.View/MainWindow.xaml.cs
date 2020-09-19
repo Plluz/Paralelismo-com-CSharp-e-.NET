@@ -34,13 +34,14 @@ namespace ByteBank.View
 
         private void BtnProcessar_Click(object sender, RoutedEventArgs e)
         {
+            BtnProcessar.IsEnabled = false;
             var threadPrincipal = TaskScheduler.FromCurrentSynchronizationContext();
 
             var contas = r_Repositorio.GetContaClientes();
             
             var resultado = new List<string>();
 
-            AtualizarView(new List<string>(), TimeSpan.Zero);
+            AtualizarMensagemProcessamento(new List<string>(), TimeSpan.Zero);
 
             var inicio = DateTime.Now;
 
@@ -54,17 +55,23 @@ namespace ByteBank.View
             }).ToArray();
 
             Task.WhenAll(tarefas)
-                .ContinueWith(Task =>
+                .ContinueWith(task =>
                 {
                     var fim = DateTime.Now;
-                    AtualizarView(resultado, fim - inicio);
+                    AtualizarMensagemProcessamento(resultado, fim - inicio);
+                }, threadPrincipal)
+                .ContinueWith(task =>
+                {
+                    BtnProcessar.IsEnabled = true;
                 }, threadPrincipal);
         }
 
-        private void AtualizarView(List<String> result, TimeSpan elapsedTime)
+        private void AtualizarMensagemProcessamento(List<String> result, TimeSpan elapsedTime)
         {
-            var tempoDecorrido = $"{ elapsedTime.Seconds }.{ elapsedTime.Milliseconds} segundos!";
-            var mensagem = $"Processamento de {result.Count} clientes em {tempoDecorrido}";
+            var mensagem = "Processando...";
+
+            if (elapsedTime != TimeSpan.Zero)
+                mensagem = $"Processamento de {result.Count} clientes concluído em { elapsedTime.Seconds }.{ elapsedTime.Milliseconds} segundos!";
 
             LstResultados.ItemsSource = result;
             TxtTempo.Text = mensagem;
