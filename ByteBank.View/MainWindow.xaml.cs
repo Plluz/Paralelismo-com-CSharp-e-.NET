@@ -35,6 +35,9 @@ namespace ByteBank.View
         private void BtnProcessar_Click(object sender, RoutedEventArgs e)
         {
             var contas = r_Repositorio.GetContaClientes();
+            
+            var contas_1 = contas.Take(contas.Count() / 2);
+            var contas_2 = contas.Skip(contas.Count() / 2);
 
             var resultado = new List<string>();
 
@@ -42,11 +45,26 @@ namespace ByteBank.View
 
             var inicio = DateTime.Now;
 
-            foreach (var conta in contas)
+            Thread thread_1 = new Thread(() =>
             {
-                var resultadoConta = r_Servico.ConsolidarMovimentacao(conta);
-                resultado.Add(resultadoConta);
-            }
+                foreach (var conta in contas_1)
+                {
+                    var resultadoConta = r_Servico.ConsolidarMovimentacao(conta);
+                    resultado.Add(resultadoConta);
+                }
+            });
+
+            Thread thread_2 = new Thread(() =>
+            {
+                foreach (var conta in contas_2)
+                {
+                    var resultadoConta = r_Servico.ConsolidarMovimentacao(conta);
+                    resultado.Add(resultadoConta);
+                }
+            });
+
+            thread_1.Start();
+            thread_2.Start();
 
             var fim = DateTime.Now;
 
