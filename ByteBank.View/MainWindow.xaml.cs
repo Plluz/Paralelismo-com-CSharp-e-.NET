@@ -36,40 +36,22 @@ namespace ByteBank.View
         {
             var contas = r_Repositorio.GetContaClientes();
             
-            var contas_1 = contas.Take(contas.Count() / 2);
-            var contas_2 = contas.Skip(contas.Count() / 2);
-
             var resultado = new List<string>();
 
             AtualizarView(new List<string>(), TimeSpan.Zero);
 
             var inicio = DateTime.Now;
 
-            Thread thread_1 = new Thread(() =>
+            var tarefas = contas.Select(conta =>
             {
-                foreach (var conta in contas_1)
+                return Task.Factory.StartNew(() =>
                 {
                     var resultadoConta = r_Servico.ConsolidarMovimentacao(conta);
                     resultado.Add(resultadoConta);
-                }
-            });
+                });
+            }).ToArray();
 
-            Thread thread_2 = new Thread(() =>
-            {
-                foreach (var conta in contas_2)
-                {
-                    var resultadoConta = r_Servico.ConsolidarMovimentacao(conta);
-                    resultado.Add(resultadoConta);
-                }
-            });
-
-            thread_1.Start();
-            thread_2.Start();
-
-            while (thread_1.IsAlive || thread_2.IsAlive)
-            {
-                Thread.Sleep(100);
-            }
+            Task.WaitAll(tarefas);
 
             var fim = DateTime.Now;
 
