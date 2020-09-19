@@ -34,6 +34,8 @@ namespace ByteBank.View
 
         private void BtnProcessar_Click(object sender, RoutedEventArgs e)
         {
+            var threadPrincipal = TaskScheduler.FromCurrentSynchronizationContext();
+
             var contas = r_Repositorio.GetContaClientes();
             
             var resultado = new List<string>();
@@ -51,11 +53,12 @@ namespace ByteBank.View
                 });
             }).ToArray();
 
-            Task.WaitAll(tarefas);
-
-            var fim = DateTime.Now;
-
-            AtualizarView(resultado, fim - inicio);
+            Task.WhenAll(tarefas)
+                .ContinueWith(Task =>
+                {
+                    var fim = DateTime.Now;
+                    AtualizarView(resultado, fim - inicio);
+                }, threadPrincipal);
         }
 
         private void AtualizarView(List<String> result, TimeSpan elapsedTime)
