@@ -38,12 +38,26 @@ namespace ByteBank.View
             var threadPrincipal = TaskScheduler.FromCurrentSynchronizationContext();
 
             var contas = r_Repositorio.GetContaClientes();
-            
-            var resultado = new List<string>();
 
             AtualizarMensagemProcessamento(new List<string>(), TimeSpan.Zero);
 
             var inicio = DateTime.Now;
+
+            ConsolidarContas(contas)
+                .ContinueWith(tarefa =>
+                {
+                    var fim = DateTime.Now;
+                    AtualizarMensagemProcessamento(tarefa.Result, fim - inicio);
+                }, threadPrincipal)
+                .ContinueWith(tarefa => 
+                {
+                    BtnProcessar.IsEnabled = true;
+                }, threadPrincipal);
+        }
+
+        private Task<List<string>> ConsolidarContas(IEnumerable<ContaCliente> contas)
+        {
+            var resultado = new List<string>();
 
             var tarefas = contas.Select(conta =>
             {
@@ -52,18 +66,12 @@ namespace ByteBank.View
                     var resultadoConta = r_Servico.ConsolidarMovimentacao(conta);
                     resultado.Add(resultadoConta);
                 });
-            }).ToArray();
+            });
 
-            Task.WhenAll(tarefas)
-                .ContinueWith(task =>
-                {
-                    var fim = DateTime.Now;
-                    AtualizarMensagemProcessamento(resultado, fim - inicio);
-                }, threadPrincipal)
-                .ContinueWith(task =>
-                {
-                    BtnProcessar.IsEnabled = true;
-                }, threadPrincipal);
+            return Task.WhenAll(tarefas).ContinueWith(tarefa =>
+            {
+                return resultado;
+            });
         }
 
         private void AtualizarMensagemProcessamento(List<String> result, TimeSpan elapsedTime)
