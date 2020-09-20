@@ -1,6 +1,7 @@
 ﻿using ByteBank.Core.Model;
 using ByteBank.Core.Repository;
 using ByteBank.Core.Service;
+using ByteBank.View.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -37,22 +38,28 @@ namespace ByteBank.View
             BtnProcessar.IsEnabled = false;
 
             var contas = r_Repositorio.GetContaClientes();
+            PgsProgresso.Maximum = contas.Count();
 
             AtualizarMensagemProcessamento(new List<string>(), TimeSpan.Zero);
 
             var inicio = DateTime.Now;
-
-            var resultado = await ConsolidarContas(contas);
-
+            var reportadorDeProgresso = new ReportadorDeProgresso<string>(str => PgsProgresso.Value++);
+            var resultado = await ConsolidarContas(contas, reportadorDeProgresso);
             var fim = DateTime.Now;
+
             AtualizarMensagemProcessamento(resultado, fim - inicio);
             BtnProcessar.IsEnabled = true;
         }
 
-        private async Task<string[]> ConsolidarContas(IEnumerable<ContaCliente> contas)
+        private async Task<string[]> ConsolidarContas(IEnumerable<ContaCliente> contas, IProgress<string> reportadorDeProgresso)
         {
             var tarefas = contas.Select(conta =>
-                Task.Factory.StartNew(() => r_Servico.ConsolidarMovimentacao(conta)));
+                Task.Factory.StartNew(() =>
+                {
+                    var resultadoConsolidacao = r_Servico.ConsolidarMovimentacao(conta);
+                    reportadorDeProgresso.Report(resultadoConsolidacao);
+                    return resultadoConsolidacao;
+                }));
 
             return await Task.WhenAll(tarefas);
         }

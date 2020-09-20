@@ -11,12 +11,19 @@
         <Image Source="/ByteBank.View;component/Assets/Logo.png"
                Height="75"
                DockPanel.Dock="Top"/>
-
-        <!-- Botão para Processamento -->
+        
+        <!-- Barra de progresso -->
+        <ProgressBar Name="PgsProgresso"
+                     Minimum="0"
+                     Height="20"
+                     DockPanel.Dock="Bottom"/>
+        
+        <!-- Mensagem de Retorno -->
         <TextBlock Name="TxtTempo"
                    DockPanel.Dock="Bottom"
-                   HorizontalAlignment="Right">
-        </TextBlock>
+                   HorizontalAlignment="Right"/>
+
+        <!-- Botão para Processamento -->
         <Button Name="BtnProcessar"
                 Padding="10"
                 DockPanel.Dock="Bottom"
@@ -28,9 +35,9 @@
         <TextBlock DockPanel.Dock="Top">Resultado:</TextBlock>
         <TextBlock DockPanel.Dock="Top"
                    Name="TxtProgresso"/>
+
         <ListView Name="LstResultados"
                   Background="Beige"
-                  Margin="0 10">
-        </ListView>
+                  Margin="0 10"/>
     </DockPanel>
 </Window>
