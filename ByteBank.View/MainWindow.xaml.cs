@@ -24,6 +24,7 @@ namespace ByteBank.View
     {
         private readonly ContaClienteRepository r_Repositorio;
         private readonly ContaClienteService r_Servico;
+        private CancellationTokenSource _cts;
 
         public MainWindow()
         {
@@ -35,7 +36,9 @@ namespace ByteBank.View
 
         private async void BtnProcessar_Click(object sender, RoutedEventArgs e)
         {
-            BtnProcessar.IsEnabled = false;
+            _cts = new CancellationTokenSource();
+
+            TrocarBotao(BtnProcessar, BtnCancelar);
 
             var contas = r_Repositorio.GetContaClientes();
             PgsProgresso.Maximum = contas.Count();
@@ -44,22 +47,36 @@ namespace ByteBank.View
 
             var inicio = DateTime.Now;
             var reportadorDeProgresso = new Progress<string>(str => PgsProgresso.Value++);
-            var resultado = await ConsolidarContas(contas, reportadorDeProgresso);
-            var fim = DateTime.Now;
-
-            AtualizarMensagemProcessamento(resultado, fim - inicio);
-            BtnProcessar.IsEnabled = true;
+            try
+            {
+                var resultado = await ConsolidarContas(contas, reportadorDeProgresso, _cts.Token);
+                var fim = DateTime.Now;
+                AtualizarMensagemProcessamento(resultado, fim - inicio);
+            }
+            catch (OperationCanceledException)
+            {
+                TxtTempo.Text = "Processamento cancelado pelo usuário";
+            }
+            finally
+            {
+                TrocarBotao(BtnCancelar, BtnProcessar);
+            }
         }
 
-        private async Task<string[]> ConsolidarContas(IEnumerable<ContaCliente> contas, IProgress<string> reportadorDeProgresso)
+        private async Task<string[]> ConsolidarContas(IEnumerable<ContaCliente> contas, IProgress<string> reportadorDeProgresso, CancellationToken ct)
         {
             var tarefas = contas.Select(conta =>
                 Task.Factory.StartNew(() =>
                 {
+                    ct.ThrowIfCancellationRequested();
+
                     var resultadoConsolidacao = r_Servico.ConsolidarMovimentacao(conta);
                     reportadorDeProgresso.Report(resultadoConsolidacao);
+
+                    ct.ThrowIfCancellationRequested();
+
                     return resultadoConsolidacao;
-                }));
+                }, ct));
 
             return await Task.WhenAll(tarefas);
         }
@@ -73,6 +90,18 @@ namespace ByteBank.View
 
             LstResultados.ItemsSource = result;
             TxtTempo.Text = mensagem;
+        }
+
+        private void BtnCancelar_Click(object sender, RoutedEventArgs e)
+        {
+            _cts.Cancel();
+            TrocarBotao(BtnCancelar, BtnProcessar);
+        }
+
+        public void TrocarBotao(Button atual, Button substituto)
+        {
+            atual.Visibility = Visibility.Collapsed;
+            substituto.Visibility = Visibility.Visible;
         }
     }
 }

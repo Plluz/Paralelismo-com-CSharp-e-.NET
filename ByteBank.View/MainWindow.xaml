@@ -28,9 +28,18 @@
                 Padding="10"
                 DockPanel.Dock="Bottom"
                 Click="BtnProcessar_Click">
-            Fazer Processamento
+            Processar
         </Button>
-        
+
+        <!-- Botão para Processamento -->
+        <Button Name="BtnCancelar"
+                Padding="10"
+                Visibility="Collapsed"
+                DockPanel.Dock="Bottom"
+                Click="BtnCancelar_Click">
+            Cancelar
+        </Button>
+
         <!-- Resultado -->
         <TextBlock DockPanel.Dock="Top">Resultado:</TextBlock>
         <TextBlock DockPanel.Dock="Top"
