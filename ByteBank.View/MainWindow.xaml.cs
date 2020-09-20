@@ -43,7 +43,7 @@ namespace ByteBank.View
             AtualizarMensagemProcessamento(new List<string>(), TimeSpan.Zero);
 
             var inicio = DateTime.Now;
-            var reportadorDeProgresso = new ReportadorDeProgresso<string>(str => PgsProgresso.Value++);
+            var reportadorDeProgresso = new Progress<string>(str => PgsProgresso.Value++);
             var resultado = await ConsolidarContas(contas, reportadorDeProgresso);
             var fim = DateTime.Now;
 
