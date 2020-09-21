@@ -11,17 +11,17 @@
         <Image Source="/ByteBank.View;component/Assets/Logo.png"
                Height="75"
                DockPanel.Dock="Top"/>
-        
-        <!-- Barra de progresso -->
-        <ProgressBar Name="PgsProgresso"
+
+        <Grid DockPanel.Dock="Bottom">
+            <!-- Barra de progresso -->
+            <ProgressBar Name="PgsProgresso"
                      Minimum="0"
-                     Height="20"
-                     DockPanel.Dock="Bottom"/>
-        
-        <!-- Mensagem de Retorno -->
-        <TextBlock Name="TxtTempo"
-                   DockPanel.Dock="Bottom"
-                   HorizontalAlignment="Right"/>
+                     Height="20"/>
+
+            <!-- Mensagem de Retorno -->
+            <TextBlock Name="TxtTempo"
+                   HorizontalAlignment="Center"/>
+        </Grid>
 
         <!-- Botão para Processamento -->
         <Button Name="BtnProcessar"

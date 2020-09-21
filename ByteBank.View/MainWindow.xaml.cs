@@ -56,6 +56,7 @@ namespace ByteBank.View
             catch (OperationCanceledException)
             {
                 TxtTempo.Text = "Processamento cancelado pelo usuário";
+                PgsProgresso.Value = 0;
             }
             finally
             {
@@ -70,7 +71,7 @@ namespace ByteBank.View
                 {
                     ct.ThrowIfCancellationRequested();
 
-                    var resultadoConsolidacao = r_Servico.ConsolidarMovimentacao(conta);
+                    var resultadoConsolidacao = r_Servico.ConsolidarMovimentacao(conta, ct);
                     reportadorDeProgresso.Report(resultadoConsolidacao);
 
                     ct.ThrowIfCancellationRequested();
